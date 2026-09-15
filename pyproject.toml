@@ -1,7 +1,7 @@
 [project]
 name = "robotics-lab-turtlebots"
 version = "0.1.0"
-description = "Provision Jetson Nano TurtleBot 1 boards: headless Ubuntu 20.04 (focal) + Docker (kobuki ROS 2 Humble, rosbridge)."
+description = "Provision Jetson Nano TurtleBot 2 boards: headless Ubuntu 20.04 (focal) + Docker (kobuki ROS 2 Humble, rosbridge)."
 readme = "README.md"
 requires-python = ">=3.8,<3.9"
 dependencies = [

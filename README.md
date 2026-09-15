@@ -1,6 +1,6 @@
-# Robotics Lab — Jetson Nano TurtleBot 1 Provisioning
+# Robotics Lab — Jetson Nano TurtleBot 2 Provisioning
 
-Provisions **five Jetson Nano 2GB** boards (each mounted on a TurtleBot 1) into identical, headless Ubuntu 20.04 servers that run Docker. Each board runs two host-network containers:
+Provisions **five Jetson Nano 2GB** boards (each mounted on a TurtleBot 2) into identical, headless Ubuntu 20.04 servers that run Docker. Each board runs two host-network containers:
 
 | Container   | Image              | Role                                            |
 |-------------|--------------------|-------------------------------------------------|
