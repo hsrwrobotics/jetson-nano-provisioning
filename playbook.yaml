@@ -1,0 +1,153 @@
+---
+- name: System provision
+  hosts: jetson
+  become: true
+  gather_facts: true
+  tags: provision
+
+  tasks:
+    - name: Remove Chromium packages
+      apt:
+        name:
+          - chromium-browser
+          - chromium-browser-l10n
+        state: absent
+        purge: true
+
+    - name: Set default to multi-user (headless)
+      systemd:
+        name: multi-user.target
+        enabled: true
+      become: true
+
+    - name: Remove desktop GUI packages
+      apt:
+        name:
+          - ubuntu-desktop
+          - ubuntu-gnome-desktop
+          - ubuntu-artwork
+          - "ubuntu-wallpaper*"
+          - "gnome-*"
+          - "libgnome*"
+          - "plymouth-theme*"
+          - light-themes
+          - kde-window-manager
+          - kinit
+          - kwin-common
+          - kwin-x11
+          - lxde
+          - "lxde-*"
+          - lxdm
+          - lxlock
+          - "lxsession*"
+          - "xserver*"
+          - xorg
+          - x11-common
+          - x11-utils
+          - unity
+          - "unity-*"
+          - gdm
+          - gdm3
+          - lightdm
+          - "libgtk*"
+          - "gtk-*"
+          - xwayland
+          - nautilus
+          - "nautilus-*"
+          - zeitgeist-core
+          - "libzeitgeist*"
+        state: absent
+        purge: true
+
+    - name: Remove unused packages
+      apt:
+        autoremove: true
+
+    - name: Refresh apt package cache
+      apt:
+        update_cache: true
+
+    - name: Upgrade installed packages
+      apt:
+        upgrade: true
+        dpkg_options: "force-confdef,force-confold"
+
+    - name: Install htop
+      apt:
+        name: htop
+        state: present
+
+    - name: Install Docker repository dependencies
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Ensure Docker keyrings directory exists
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Download Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    - name: Add Docker apt repository
+      apt_repository:
+        repo: "deb [arch=arm64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu focal stable"
+        filename: docker
+        state: present
+        update_cache: false
+
+    - name: Refresh apt package cache after adding Docker repo
+      apt:
+        update_cache: true
+
+    - name: Install Docker Engine and Compose plugin
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Add jetson user to docker group
+      user:
+        name: jetson
+        groups: docker
+        append: true
+
+- name: Deploy applications
+  hosts: jetson
+  become: true
+  tags: deploy
+
+  tasks:
+    - name: Create compose directory
+      file:
+        path: /opt/compose
+        state: directory
+        mode: "0755"
+
+    - name: Write docker-compose file
+      copy:
+        src: deploy/docker-compose.yml
+        dest: /opt/compose/docker-compose.yml
+        mode: "0644"
+
+    - name: Write .env file
+      copy:
+        src: deploy/.env
+        dest: /opt/compose/.env
+        mode: "0600"
+
+    - name: Start containers via docker compose
+      command: docker compose -f /opt/compose/docker-compose.yml up -d --remove-orphans

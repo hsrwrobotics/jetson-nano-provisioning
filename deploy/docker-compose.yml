@@ -1,0 +1,30 @@
+services:
+  kobuki:
+    image: tsecretino/kobuki:latest
+    container_name: kobuki
+    command: >
+      ros2 launch kobuki kobuki.launch.py
+      namespace:=${NAMESPACE}
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - ROS_DOMAIN_ID=10
+      - ROS_LOCALHOST_ONLY=0
+      - ROS_NAMESPACE=${NAMESPACE}
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    volumes:
+      - /dev:/dev
+
+  rosbridge:
+    image: tsecretino/kobuki:latest
+    container_name: rosbridge
+    command: >
+      ros2 launch rosbridge_server
+      rosbridge_websocket_launch.xml
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - ROS_DOMAIN_ID=10
+      - ROS_LOCALHOST_ONLY=0
+    restart: unless-stopped
+    network_mode: host
